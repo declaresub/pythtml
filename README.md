@@ -45,71 +45,82 @@ specifying the charset as the first child of the head element.
 
 ### Get the package version:
 
-    import pyfive
-    print pyfive.__version__
-
+    >>> import pyfive
+    >>> print(pyfive.__version__)
+    0.0.0
+    
 ### Generation of a document:
 
-    from pyfive import *
-
-    doc = html(
-        head(meta(charset='utf-8')),
-        body(
-            h1('pyfive', id="title"), 
-            p('pyfive is an alternative to templates for generation of HTML.', Class='blurb'), 
-            script(type='text/javascript', src='http://www.the.gov/tracking_code.js')
-            )
-        )
-
-    # str(doc) returns UTF-8.
-    print str(doc)
+    >>> from pyfive import *
+    >>> 
+    >>> doc = html(
+    ...     body(
+    ...         h1('pyfive', id="title"), 
+    ...         p('pyfive is an alternative to templates for generation of HTML.', Class='blurb'), 
+    ...         script(type='text/javascript', src='http://www.the.gov/tracking_code.js')
+    ...         )
+    ...     )
+    >>> 
+    >>> # str(doc) returns UTF-8.
+    ... print(str(doc))
+    <!DOCTYPE html>
+    <html><body><h1 id="title">pyfive</h1><p class="blurb">pyfive is an alternative to templates for generation of HTML.</p><script src="http://www.the.gov/tracking_code.js" type="text/javascript"></script></body></html>
     
 
 ### Generation of a header element:
 
-from pyfive import *
-
-doc_header = header(
-    h1('pyfive', id="title"), 
-    p('pyfive is an alternative to templates for generation of HTML.')
-    )
-
-
+    >>> doc_header = header(
+    ...     h1('pyfive', id="title"), 
+    ...     p('pyfive is an alternative to templates for generation of HTML.')
+    ...     )
+    >>> print(doc_header)
+    <header><h1 id="title">pyfive</h1><p>pyfive is an alternative to templates for generation of HTML.</p></header>
+    
 ### Inline Formatting
 
-    return p('This text contains a ', b('bold'), ' tag.')
-
-
+    >>> from pyfive import *
+    >>> 
+    >>> print (p('This text contains a ', b('bold'), ' tag.'))
+    <p>This text contains a <b>bold</b> tag.</p>
+    
 ### Add script code without escaping:
 
-    from pyfive import *
+    >>> from pyfive import *
+    >>> 
+    >>> chumhum_analytics = """
+    ...     (function(i,s,o,g,r,a,m){i['ChumhumAnalyticsObject']=r;i[r]=i[r]||function(){
+    ...     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    ...     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    ...     })(window,document,'script','//analytics.chumhum.com/analytics.js','ca');
+    ...     ca('create', 'ID-0000000-3', 'auto');
+    ...     ca('send', 'pageview');
+    ...     """.strip()
+    >>> 
+    >>> doc = body(
+    ...     script(raw(chumhum_analytics), type="text/javascript")
+    ...     )
+    >>> print(doc)
+    <body><script type="text/javascript">(function(i,s,o,g,r,a,m){i['ChumhumAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//analytics.chumhum.com/analytics.js','ca');
+        ca('create', 'ID-0000000-3', 'auto');
+        ca('send', 'pageview');</script></body>
 
-    chumhum_analytics = """
-      (function(i,s,o,g,r,a,m){i['ChumhumAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//analytics.chumhum.com/analytics.js','ca');
-
-      ca('create', 'ID-0000000-3', 'auto');
-      ca('send', 'pageview');
-    """.strip()
-
-    doc = body(
-        script(raw(chumhum_analytics), type="text/javascript")
-        )
-    
 ### Iteration
 
-    from pyfive import *
-
-    option_items = ['Red', 'Green', 'Blue']
-    ul(*(li(item) for item in option_items))
-
+    >>> from pyfive import *
+    >>> 
+    >>> option_items = ['Red', 'Green', 'Blue']
+    >>> print(ul(*(li(item) for item in option_items)))
+    <ul><li>Red</li><li>Green</li><li>Blue</li></ul>
 
 ### Template
 
-    context = {'username': 'poindexter'}
-    template = unicode(p('You are logged in as {username}.', Class='welcome'))
-    print template.format(**context)
+    >>> from pyfive import *
 
-
+    >>> context = {'username': 'poindexter'}
+    >>> template = str(p('You are logged in as {username}.', Class='welcome'))
+    >>> print(template.format(**context))
+    <p class="welcome">You are logged in as poindexter.</p>
+    
