@@ -51,33 +51,33 @@ specifying the charset as the first child of the head element.
 ### Generation of a document:
 
     from pyfive import *
-    
+
     doc = html(
         head(meta(charset='utf-8')),
         body(
-            h1('pyfive', id="title")
-            p('pyfive is an alternative to templates for generation of HTML.', Class='blurb')
+            h1('pyfive', id="title"), 
+            p('pyfive is an alternative to templates for generation of HTML.', Class='blurb'), 
             script(type='text/javascript', src='http://www.the.gov/tracking_code.js')
             )
         )
-    
+
     # str(doc) returns UTF-8.
     print str(doc)
     
 
 ### Generation of a header element:
 
-    from pyfive import *
-    
-    doc_header = header(
-        h1('pyfive', id="title"), 
-        p('pyfive is an alternative to templates for generation of HTML.')
-        )
+from pyfive import *
+
+doc_header = header(
+    h1('pyfive', id="title"), 
+    p('pyfive is an alternative to templates for generation of HTML.')
+    )
 
 
 ### Inline Formatting
 
-    return p('This text contains a ', bold('bold'), ' tag.')
+    return p('This text contains a ', b('bold'), ' tag.')
 
 
 ### Add script code without escaping:
@@ -102,8 +102,7 @@ specifying the charset as the first child of the head element.
 
     from pyfive import *
 
-    option_items = ['Red', Green, 'Blue']
-    
+    option_items = ['Red', 'Green', 'Blue']
     ul(*(li(item) for item in option_items))
 
 
