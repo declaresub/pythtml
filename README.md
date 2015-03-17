@@ -61,11 +61,7 @@ specifying the charset as the first child of the head element.
     ...         )
     ...     )
     >>> 
-    >>> # str(doc) returns UTF-8.
-    ... print(str(doc))
-    <!DOCTYPE html>
-    <html><body><h1 id="title">pyfive</h1><p class="blurb">pyfive is an alternative to templates for generation of HTML.</p><script src="http://www.the.gov/tracking_code.js" type="text/javascript"></script></body></html>
-    
+
 
 ### Generation of a header element:
 
