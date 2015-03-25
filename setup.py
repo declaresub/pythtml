@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 # a unicode string in the packages argument.
 
 
-import codecs
+import io
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 import json
@@ -26,7 +26,7 @@ class Tox(TestCommand):
 
 
 def package_version():
-    with codecs.open('pyfive/__init__.py', 'rb', 'utf-8') as f:
+    with io.open('pyfive/__init__.py', 'r', encoding='utf-8') as f:
         for sourceline in f:
             if sourceline.strip().startswith('__version__'):
                  return sourceline.split('=', 1)[1].strip(string.whitespace + '"\'')
