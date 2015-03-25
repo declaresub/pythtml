@@ -7,6 +7,7 @@ It is not an HTML parser/validator; it assumes that user has some knowledge of H
 
 from __future__ import absolute_import, unicode_literals, division, print_function
 
+#pylint: disable=wildcard-import
 from .elements import *
 
 
