@@ -204,7 +204,5 @@ class _ElementRaw(_BaseElement):
 #pylint: disable=invalid-name
 raw = _ElementRaw
 
-
 for element_name, is_empty_element in ELEMENTS:
     setattr(sys.modules[__name__], element_name, partial(_Element, element_name, is_empty_element))
-
