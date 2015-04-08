@@ -53,3 +53,6 @@ def test_HTMLAttribute_unicode_boolean_false():
 
 def test_raw():
     assert text(body(raw('<script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script>'))) == '<body><script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script></body>'
+    
+def test_null_child():
+    assert text(div(None)) == '<div></div>'

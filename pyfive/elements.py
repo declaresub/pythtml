@@ -165,7 +165,7 @@ class _Element(_BaseElement):
     def __init__(self, name, is_empty, *children, **attributes):
         super(_Element, self).__init__()
         #pylint: disable=redefined-outer-name
-        _children = [cgi.escape(self.u_ensure(x)) if isinstance(x, (self.text, self.bytes)) else self.text(x) for x in children]
+        _children = [cgi.escape(self.u_ensure(x)) if isinstance(x, (self.text, self.bytes)) else self.text(x) for x in children if x is not None]
         self.data = self.generate_html(name, is_empty, _children, self.generate_attrs(attributes))
 
     def fix_attr_name(self, name):
