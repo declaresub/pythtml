@@ -51,6 +51,9 @@ def test_HTMLAttribute_unicode_boolean():
 def test_HTMLAttribute_unicode_boolean_false():
     assert text(script(async=False)) == '<script></script>'
 
+def test_HTMLAttribute_unicode_boolean_none():
+    assert text(script(async=None)) == '<script></script>'
+    
 def test_raw():
     assert text(body(raw('<script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script>'))) == '<body><script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script></body>'
     
@@ -58,4 +61,8 @@ def test_null_child():
     assert text(div(None)) == '<div></div>'
 
 def test_name_attribute():
-        assert meta(name='viewport', content='width=1236')
+    assert meta(name='viewport', content='width=1236')
+    
+def test_html_head_body():
+    resource = html(head(), body())
+    assert text(resource) == '<!DOCTYPE html>\n<html><head></head><body></body></html>'

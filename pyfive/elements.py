@@ -9,7 +9,6 @@ from keyword import iskeyword
 from functools import partial
 
 
-
 #element = (name, is_empty_element)
 ELEMENTS = [
     ('a', False),
@@ -184,7 +183,8 @@ class _Element(_BaseElement):
         return value if isinstance(value, bool) else quoteattr(self.u_ensure(value))
 
     def generate_attrs(self, attributes):
-        attrs = [(attr_name, attr_value) for attr_name, attr_value in attributes.items() if not isinstance(attr_value, bool) or attr_value == True]
+        #strip attributes with value False or None.
+        attrs = [(attr_name, attr_value) for attr_name, attr_value in attributes.items() if attr_value not in set([False, None])]
         attrs = [(self.fix_attr_name(attr_name), attr_value if isinstance(attr_value, bool) else self.fix_attr_value(attr_value)) for attr_name, attr_value in attrs]
         return ' '.join([(attr_name if attr_value else '') if isinstance(attr_value, bool) else '%s=%s' % (attr_name, attr_value) for attr_name, attr_value in attrs])
 
