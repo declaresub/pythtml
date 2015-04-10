@@ -56,3 +56,6 @@ def test_raw():
     
 def test_null_child():
     assert text(div(None)) == '<div></div>'
+
+def test_name_attribute():
+        assert meta(name='viewport', content='width=1236')
