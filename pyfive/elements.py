@@ -5,9 +5,7 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 import sys
 import cgi
 from xml.sax.saxutils import quoteattr
-from keyword import iskeyword
 from functools import partial
-import re
 from keyword import kwlist
 
 
