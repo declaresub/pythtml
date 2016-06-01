@@ -10,21 +10,21 @@ from pyfive.elements import _BaseElement
 
 text = unicode if sys.version_info.major == 2 else str
 
-def test_u_ensure():
+def test_textify():
     base = _BaseElement()
     value = 'foo'
-    u_value = base.u_ensure(value)
+    u_value = base.textify(value)
     assert isinstance(u_value, base.text) and u_value == value
 
 
 def test_html():
-    assert text(html()) == '<!DOCTYPE html>\n<html></html>'
+    assert text(html()) == u'<!DOCTYPE html>\n<html></html>'
      
 def test_attr():  
-    assert text(meta(charset='utf-8')) == '<meta charset="utf-8">'
+    assert text(meta(charset='utf-8')) == u'<meta charset="utf-8">'
    
 def test_demangle_kw():
-    assert text(div(Class='foo')) == '<div class="foo"></div>'
+    assert text(div(class_='foo')) == '<div class="foo"></div>'
      
 def test_demangle_data_attr():
     assert text(div(data_foo='bar')) == '<div data-foo="bar"></div>'
@@ -65,4 +65,4 @@ def test_name_attribute():
     
 def test_html_head_body():
     resource = html(head(), body())
-    assert text(resource) == '<!DOCTYPE html>\n<html><head></head><body></body></html>'
+    assert text(resource) == u'<!DOCTYPE html>\n<html><head></head><body></body></html>'

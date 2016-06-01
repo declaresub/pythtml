@@ -7,6 +7,8 @@ import cgi
 from xml.sax.saxutils import quoteattr
 from keyword import iskeyword
 from functools import partial
+import re
+from keyword import kwlist
 
 
 #element = (name, is_empty_element)
@@ -135,74 +137,104 @@ class _BaseElement(object):
 
     def __init__(self, *args, **kwargs):
         super(_BaseElement, self).__init__(*args, **kwargs)
-        self.data = None
 
-    #pylint: disable=invalid-name
-    def u_ensure(self, s):
-        """Takes the argument s and returns a unicode object."""
+    def textify(self, s):
+        """Takes the argument s and returns a unicode object.  Intended to work on anything 
+        that supports conversion to string; e.g. int, bool, uuid."""
 
         if isinstance(s, self.text):
             return s
         else:
             return s.decode(self.ENCODING) if hasattr(s, 'decode') else self.text(s)
 
-    def __unicode__(self):
-        # should only be invoked in python 2.
-        return self.data
-
-    def __str__(self):
-        return self.data.encode(self.ENCODING) if self.is2 else self.data
-
-    def __bytes__(self):
-        # should only be invoked in python 3, but I'll handle both versions anyway.
-        return self.data.encode(self.ENCODING) if not self.is2 else self.__str__()
 
 
 class _Element(_BaseElement):
     """Implements HTML element functions."""
 
-    def __init__(self, _name, is_empty, *children, **attributes):
-        """ 'name' is a common attribute name, so our parameter is prefixed to prevent
-        keyword argument clashes."""
-        
-        super(_Element, self).__init__()
-        #pylint: disable=redefined-outer-name
-        _children = [cgi.escape(self.u_ensure(x)) if isinstance(x, (self.text, self.bytes)) else self.text(x) for x in children if x is not None]
-        self.data = self.generate_html(_name, is_empty, _children, self.generate_attrs(attributes))
-
-    def fix_attr_name(self, name):
-        # Name clashes with keywords can be resolved by
-        # capitalizing the attribute parameter name.
+    # used for attribute names.
+    kwmap = {u'%s_' % kw: _BaseElement.text(kw) for kw in kwlist}
+    
+    def __init__(self, element_name, is_empty, *children, **attributes):
+        # Name clashes with keywords are resolved by appending _ as suggested by PEP 8.
         # Attribute names beginning with 'data_' are presumed to be HTML5 data-* attribute
         # names, and so underscores are replaced with dashes.
 
-        name = self.u_ensure(name)
-        return name.replace('_', '-') if name.startswith('data_') else name[0].lower() + name[1:] if iskeyword(name[0].lower() + name[1:]) else name
+        super(_Element, self).__init__()
+        
+        self.name = element_name
+        self.is_empty = is_empty
+        
+        self.children = [cgi.escape(self.textify(x)) if isinstance(x, (self.text, self.bytes))
+            else x for x in children if x is not None]
+        
+        # strip attributes having value None or False
+        self.attributes = {self._attr_name(k) : self._attr_value(v) 
+            for k, v in attributes.items() 
+            if v not in (None, False)
+            }
+                        
+    def _attr_name(self, name):
+        """ Implements attribute name conventions."""
 
-    def fix_attr_value(self, value):
-        return value if isinstance(value, bool) else quoteattr(self.u_ensure(value))
+        name = self.textify(name)
+        return name.replace(u'_', u'-') if name.startswith(u'data_') else self.kwmap.get(name, name)
 
-    def generate_attrs(self, attributes):
-        #strip attributes with value False or None.
-        attrs = [(attr_name, attr_value) for attr_name, attr_value in attributes.items() if attr_value not in set([False, None])]
-        attrs = [(self.fix_attr_name(attr_name), attr_value if isinstance(attr_value, bool) else self.fix_attr_value(attr_value)) for attr_name, attr_value in attrs]
-        return ' '.join([(attr_name if attr_value else '') if isinstance(attr_value, bool) else '%s=%s' % (attr_name, attr_value) for attr_name, attr_value in attrs])
+    def _attr_value(self, value):
+        return value if isinstance(value, bool) else quoteattr(self.textify(value))
 
-    @staticmethod
-    def generate_html(name, is_empty, children, attributes):
-        if is_empty:
-            return '<%s%s%s>' % (name, ' ' if attributes else '', attributes)
+    def _generate_attrs(self):
+        #if isinstance(attr_value, bool), then I assume that __init__ filtered out attributes. 
+        # with value False.
+        return u' '.join([attr_name if isinstance(attr_value, bool) 
+            else '%s=%s' % (attr_name, attr_value) 
+            for attr_name, attr_value in self.attributes.items()])
+  
+    def __unicode__(self):
+        if self.is_empty:
+            return u'<%s%s%s>' % (self.name, ' ' if self.attributes else '', self._generate_attrs())
         else:
-            return ('<!DOCTYPE html>\n<%s%s%s>%s</%s>' if name == 'html' else '<%s%s%s>%s</%s>') % (name, ' ' if attributes else '', attributes, ''.join(children), name)
+            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>' if self.name == u'html' else u'<%s%s%s>%s</%s>') % (
+                self.name, 
+                ' ' if self.attributes else '',
+                self._generate_attrs(),
+                ''.join([child.__unicode__() for child in self.children]),
+                self.name
+                )
+        
+    def __bytes__(self):        
+        return self.__unicode__().encode(self.ENCODING)
+
+    def __str__(self):
+        return self.__bytes__() if self.is2 else self.__unicode__()
+
+
 
 
 class _ElementRaw(_BaseElement):
     """Implements the raw function."""
 
-    def __init__(self, data):
-        super(_ElementRaw, self).__init__()
-        self.data = self.u_ensure(data)
+    def __init__(self, data, *args, **kwargs):
+        """Wraps a string that should not be escaped; e.g. javaascript code, or an HTML 
+        element already rendered as a string.
+        
+        :data: a str | unicode | bytes object.
+        """
+        
+        super(_ElementRaw, self).__init__(*args, **kwargs)
+        self.data = self.textify(data)
 
+    def __unicode__(self):
+        # should only be invoked in python 2.
+        return self.data
+
+    def __bytes__(self):
+        # should only be invoked in python 3, but I'll handle both versions anyway.
+        return self.data.encode(self.ENCODING)
+
+    def __str__(self):
+        return self.__bytes__()
+        
 
 #pylint: disable=invalid-name
 raw = _ElementRaw
