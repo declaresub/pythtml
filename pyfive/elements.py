@@ -192,7 +192,8 @@ class _Element(_BaseElement):
         if self.is_empty:
             return u'<%s%s%s>' % (self.name, ' ' if self.attributes else '', self._generate_attrs())
         else:
-            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>' if self.name == u'html' else u'<%s%s%s>%s</%s>') % (
+            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>' 
+                if self.name == u'html' else u'<%s%s%s>%s</%s>') % (
                 self.name,
                 ' ' if self.attributes else '',
                 self._generate_attrs(),
