@@ -1,2 +1,4 @@
-pyflakes
+pylint
 pytest
+check-manifest
+wheel
