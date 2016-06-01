@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
+"""pyfive elements."""
+
 from __future__ import absolute_import, unicode_literals, division, print_function
 
 import sys
-import cgi
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
+
 from xml.sax.saxutils import quoteattr
 from functools import partial
 from keyword import kwlist
@@ -130,20 +136,20 @@ class _BaseElement(object):
 
     ENCODING = 'utf-8'
     is2 = sys.version_info.major == 2
-    text = unicode if is2 else str
+    text = unicode if is2 else str # pylint: disable=undefined-variable
     bytes = str if is2 else bytes
 
     def __init__(self, *args, **kwargs):
         super(_BaseElement, self).__init__(*args, **kwargs)
 
-    def textify(self, s):
+    def textify(self, value):
         """Takes the argument s and returns a unicode object.  Intended to work on anything
         that supports conversion to string; e.g. int, bool, uuid."""
 
-        if isinstance(s, self.text):
-            return s
+        if isinstance(value, self.text):
+            return value
         else:
-            return s.decode(self.ENCODING) if hasattr(s, 'decode') else self.text(s)
+            return value.decode(self.ENCODING) if hasattr(value, 'decode') else self.text(value)
 
 
 
@@ -163,7 +169,7 @@ class _Element(_BaseElement):
         self.name = element_name
         self.is_empty = is_empty
 
-        self.children = [cgi.escape(self.textify(x)) if isinstance(x, (self.text, self.bytes))
+        self.children = [escape(self.textify(x)) if isinstance(x, (self.text, self.bytes)) #pylint: disable=deprecated-method
             else x for x in children if x is not None]
 
         # strip attributes having value None or False
@@ -179,9 +185,13 @@ class _Element(_BaseElement):
         return name.replace(u'_', u'-') if name.startswith(u'data_') else self.kwmap.get(name, name)
 
     def _attr_value(self, value):
+        """Returns quoted attribute value."""
+
         return value if isinstance(value, bool) else quoteattr(self.textify(value))
 
     def _generate_attrs(self):
+        """ Generates attribute strings."""
+
         #if isinstance(attr_value, bool), then I assume that __init__ filtered out attributes.
         # with value False.
         return u' '.join([attr_name if isinstance(attr_value, bool)
@@ -192,7 +202,7 @@ class _Element(_BaseElement):
         if self.is_empty:
             return u'<%s%s%s>' % (self.name, ' ' if self.attributes else '', self._generate_attrs())
         else:
-            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>' 
+            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>'
                 if self.name == u'html' else u'<%s%s%s>%s</%s>') % (
                 self.name,
                 ' ' if self.attributes else '',
@@ -238,5 +248,5 @@ class _ElementRaw(_BaseElement):
 #pylint: disable=invalid-name
 raw = _ElementRaw
 
-for element_name, is_empty_element in ELEMENTS:
-    setattr(sys.modules[__name__], element_name, partial(_Element, element_name, is_empty_element))
+for element_type, is_empty_element in ELEMENTS:
+    setattr(sys.modules[__name__], element_type, partial(_Element, element_type, is_empty_element))
