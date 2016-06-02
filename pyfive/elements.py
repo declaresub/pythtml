@@ -58,9 +58,10 @@ class _Element(_BaseElement):
 
         self.tag = tag
         self.is_empty = is_empty
+        self._children = []
 
-        self._children = [escape(self.textify(x)) if isinstance(x, (self.text, self.bytes)) #pylint: disable=deprecated-method
-            else x for x in children if x is not None]
+        for child in children:
+            self.append(child)
 
         # strip attributes having value None or False
         self.attributes = {self._attr_name(k) : v
@@ -102,22 +103,26 @@ class _Element(_BaseElement):
     def __str__(self):
         return self.__bytes__() if self.is2 else self.__unicode__()
 
-    def children(self):
-        """Returns a list of all children in the order added."""
+    def children(self, tag=None):
+        """Returns a list of all children in the order added.
+        If tag is not None, then the list is filtered by tag."""
 
-        return [x for x in self._children]
-        
-    def append_child(self, child):
+        return [x for x in self._children if tag is None or x.tag == tag]
+
+    def append(self, child):
+        """Appends child element."""
+
         if child is None:
             return
 
-        self._children.append(child)
+        self._children.append(escape(self.textify(child)) #pylint: disable=deprecated-method
+            if isinstance(child, (self.text, self.bytes)) else child)
 
-    def remove_child(self, child):
+    def remove(self, child):
         """Removes child element from children, if present."""
 
-        self._children = [x for x in self._children if x != child]            
-            
+        self._children = [x for x in self._children if x != child]
+
     def find_by_id(self, value):
         """Finds the element in the tree having attribute id="value", if present.
         Some so-called "full stack developers" think it's okay to have multiple elements
@@ -457,17 +462,18 @@ class Html(_Element):
 
     def __init__(self, *children, **attributes):
         super(Html, self).__init__('html', False, *children, **attributes)
-        
-    def body():
+
+    def body(self):
         "Returns the body child element, if present, or None."""
-        
-        for child in self.children:
-            if isinstance(child, Body):
-                value = child
-                break
-        else:
-            value = None
-        return value
+
+        body_list = self.children(tag='body')
+        return body_list[0] if len(body_list) > 0 else None
+
+    def head(self):
+        "Returns the head child element, if present, or None."""
+
+        head_list = self.children(tag='head')
+        return head_list[0] if len(head_list) > 0 else None
 
 class I(_Element): # pylint: disable=invalid-name
     """Represents an HTML i element."""
