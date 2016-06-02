@@ -39,7 +39,6 @@ class _BaseElement(object):
             return value.decode(self.ENCODING) if hasattr(value, 'decode') else self.text(value)
 
 
-
 class _Element(_BaseElement):
     """Implements HTML element functions."""
 
@@ -115,7 +114,7 @@ class _Element(_BaseElement):
         if child is None:
             return
 
-        self._children.append(escape(self.textify(child)) #pylint: disable=deprecated-method
+        self._children.append(escape(self.textify(child), quote=False) #pylint: disable=deprecated-method
             if isinstance(child, (self.text, self.bytes)) else child)
 
     def remove(self, child):
