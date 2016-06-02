@@ -4,25 +4,41 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 
 import sys
 import pytest
+import uuid
 
 from pyfive import *
 from pyfive.elements import _BaseElement
 
 text = unicode if sys.version_info.major == 2 else str
 
-def test_textify():
+
+@pytest.mark.parametrize("input, expected", [
+    (u'foo', u'foo'),
+    ('test', u'test'),
+    (43, '43'),
+    (True, 'True'),
+    (uuid.UUID('4dc19bc5-af42-4af7-9660-1ce2df9a6005'), '4dc19bc5-af42-4af7-9660-1ce2df9a6005')
+    ])
+def test_textify(input, expected):
     base = _BaseElement()
-    value = 'foo'
-    u_value = base.textify(value)
-    assert isinstance(u_value, base.text) and u_value == value
+    u_value = base.textify(input)
+    assert isinstance(u_value, base.text) and u_value == expected
 
 
 def test_html():
     assert text(Html()) == u'<!DOCTYPE html>\n<html></html>'
 
-def test_p():
-    assert text(P('foo')) == u'<p>foo</p>'
-    
+@pytest.mark.parametrize("input, expected", [
+    (u'foo', u'<p>foo</p>'),
+    ('test', u'<p>test</p>'),
+    (43, u'<p>43</p>'),
+    (True, u'<p>True</p>'),
+    (uuid.UUID('4dc19bc5-af42-4af7-9660-1ce2df9a6005'), u'<p>4dc19bc5-af42-4af7-9660-1ce2df9a6005</p>')
+    ])
+def test_p(input, expected):
+    assert text(P(input)) == expected
+
+  
 def test_attr():  
     assert text(Meta(charset='utf-8')) == u'<meta charset="utf-8">'
    
@@ -90,7 +106,7 @@ def test_append():
     
 def test_children_filtered():
     img = Img()
-    children = [P(), img, P()]
+    children = [u'foo', P(), img, P()]
     parent = Div(*children)
     assert parent.children(tag='img') == [img]
 

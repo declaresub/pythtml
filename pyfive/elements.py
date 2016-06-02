@@ -105,8 +105,8 @@ class _Element(_BaseElement):
     def children(self, tag=None):
         """Returns a list of all children in the order added.
         If tag is not None, then the list is filtered by tag."""
-
-        return [x for x in self._children if tag is None or x.tag == tag]
+        
+        return [x for x in self._children if tag is None or getattr(x, 'tag', None) == tag]
 
     def append(self, child):
         """Appends child element."""
@@ -114,8 +114,8 @@ class _Element(_BaseElement):
         if child is None:
             return
 
-        self._children.append(escape(self.textify(child), quote=False) #pylint: disable=deprecated-method
-            if isinstance(child, (self.text, self.bytes)) else child)
+        self._children.append(child if isinstance(child, _BaseElement) #pylint: disable=deprecated-method
+            else escape(self.textify(child), quote=False))
 
     def remove(self, child):
         """Removes child element from children, if present."""
