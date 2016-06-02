@@ -19,7 +19,10 @@ def test_textify():
 
 def test_html():
     assert text(Html()) == u'<!DOCTYPE html>\n<html></html>'
-   
+
+def test_p():
+    assert text(P('foo')) == u'<p>foo</p>'
+    
 def test_attr():  
     assert text(Meta(charset='utf-8')) == u'<meta charset="utf-8">'
    

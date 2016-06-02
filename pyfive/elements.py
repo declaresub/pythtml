@@ -93,7 +93,7 @@ class _Element(_BaseElement):
                 self.tag,
                 ' ' if self.attributes else '',
                 self._generate_attrs(),
-                ''.join([child.__unicode__() for child in self._children]),
+                ''.join([child if isinstance(child, self.text) else child.__unicode__() for child in self._children]),
                 self.tag
                 )
 
