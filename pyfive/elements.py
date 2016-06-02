@@ -59,7 +59,7 @@ class _Element(_BaseElement):
         self.tag = tag
         self.is_empty = is_empty
 
-        self.children = [escape(self.textify(x)) if isinstance(x, (self.text, self.bytes)) #pylint: disable=deprecated-method
+        self._children = [escape(self.textify(x)) if isinstance(x, (self.text, self.bytes)) #pylint: disable=deprecated-method
             else x for x in children if x is not None]
 
         # strip attributes having value None or False
@@ -92,7 +92,7 @@ class _Element(_BaseElement):
                 self.tag,
                 ' ' if self.attributes else '',
                 self._generate_attrs(),
-                ''.join([child.__unicode__() for child in self.children]),
+                ''.join([child.__unicode__() for child in self._children]),
                 self.tag
                 )
 
@@ -102,15 +102,31 @@ class _Element(_BaseElement):
     def __str__(self):
         return self.__bytes__() if self.is2 else self.__unicode__()
 
+    def children(self):
+        """Returns a list of all children in the order added."""
+
+        return [x for x in self._children]
+        
+    def append_child(self, child):
+        if child is None:
+            return
+
+        self._children.append(child)
+
+    def remove_child(self, child):
+        """Removes child element from children, if present."""
+
+        self._children = [x for x in self._children if x != child]            
+            
     def find_by_id(self, value):
         """Finds the element in the tree having attribute id="value", if present.
-        Some so-called "full stack developers think it's okay to have multiple elements
+        Some so-called "full stack developers" think it's okay to have multiple elements
         with the same id value. This method does not support that."""
 
         if self.attributes.get('id') == value:
             return self
         else:
-            for child in self.children:
+            for child in self._children:
                 element = child.find_by_id(value) if hasattr(child, 'find_by_id') else None
                 if element:
                     break
@@ -441,6 +457,17 @@ class Html(_Element):
 
     def __init__(self, *children, **attributes):
         super(Html, self).__init__('html', False, *children, **attributes)
+        
+    def body():
+        "Returns the body child element, if present, or None."""
+        
+        for child in self.children:
+            if isinstance(child, Body):
+                value = child
+                break
+        else:
+            value = None
+        return value
 
 class I(_Element): # pylint: disable=invalid-name
     """Represents an HTML i element."""
