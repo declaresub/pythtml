@@ -78,3 +78,16 @@ def test_find_child_by_id():
     id_element = P(id=foo)
     parent = P(id_element)
     assert parent.find_by_id(foo) == id_element
+    
+def test_append():
+    parent = Div()
+    child = Div()
+    parent.append(child)
+    assert parent.children() == [child]
+    
+def test_children_filtered():
+    img = Img()
+    children = [P(), img, P()]
+    parent = Div(*children)
+    assert parent.children(tag='img') == [img]
+
