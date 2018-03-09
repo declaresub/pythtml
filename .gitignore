@@ -5,3 +5,5 @@ __pycache__
 .tox
 *.venv
 *.cache
+.coverage
+.pytest*
