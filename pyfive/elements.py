@@ -42,10 +42,14 @@ class _BaseElement(object):
 class _Element(_BaseElement):
     """Implements HTML element functions."""
 
+    # these attributes must be set in subclasses.
+    tag = None
+    is_empty = False
+
     # used for attribute names.
     kwmap = {u'%s_' % kw: _BaseElement.text(kw) for kw in kwlist}
 
-    def __init__(self, tag, is_empty, *children, **attributes):
+    def __init__(self, *children, **attributes):
         # Name clashes with keywords are resolved by appending _ as suggested by PEP 8.
         # For example to pass a class attribute as a keyword argument, use
         # class_'foo, bar'.  The trailing underscore will be stripped because 'class' is a
@@ -54,9 +58,6 @@ class _Element(_BaseElement):
         # names, and so underscores are replaced with dashes.
 
         super(_Element, self).__init__()
-
-        self.tag = tag
-        self.is_empty = is_empty
         self._children = []
 
         for child in children:
@@ -139,7 +140,6 @@ class _Element(_BaseElement):
             return element
 
 
-
 class Raw(_BaseElement):
     """Implements the raw function."""
 
@@ -170,297 +170,297 @@ class Raw(_BaseElement):
 
 class A(_Element): # pylint: disable=invalid-name
     """Represents an HTML a element."""
+    
+    tag = 'a'
 
-    def __init__(self, *children, **attributes):
-        super(A, self).__init__('a', False, *children, **attributes)
 
 class Abbr(_Element):
     """Represents an HTML abbr element."""
 
-    def __init__(self, *children, **attributes):
-        super(Abbr, self).__init__('abbr', False, *children, **attributes)
+    tag = 'abbr'
+
 
 class Acronym(_Element):
     """Represents an HTML acronym element."""
 
-    def __init__(self, *children, **attributes):
-        super(Acronym, self).__init__('acronym', False, *children, **attributes)
+    tag = 'acronym'
+
 
 class Address(_Element):
     """Represents an HTML address element."""
 
-    def __init__(self, *children, **attributes):
-        super(Address, self).__init__('address', False, *children, **attributes)
+    tag = 'address'
+
 
 class Area(_Element):
     """Represents an HTML area element."""
 
-    def __init__(self, *children, **attributes):
-        super(Area, self).__init__('area', True, *children, **attributes)
+    tag = 'area'
+    is_empty = True
 
 class Article(_Element):
     """Represents an HTML article element."""
 
-    def __init__(self, *children, **attributes):
-        super(Article, self).__init__('article', False, *children, **attributes)
+    tag = 'article'
+
 
 class Audio(_Element):
     """Represents an HTML audio element."""
 
-    def __init__(self, *children, **attributes):
-        super(Audio, self).__init__('audio', False, *children, **attributes)
+    tag = 'audio'
+
 
 class B(_Element): # pylint: disable=invalid-name
     """Represents an HTML b element."""
 
-    def __init__(self, *children, **attributes):
-        super(B, self).__init__('b', False, *children, **attributes)
+    tag = 'b'
+
 
 class Base(_Element):
     """Represents an HTML base element."""
 
-    def __init__(self, *children, **attributes):
-        super(Base, self).__init__('base', True, *children, **attributes)
+    tag = 'base'
+
 
 class Bdi(_Element):
     """Represents an HTML bdi element."""
 
-    def __init__(self, *children, **attributes):
-        super(Bdi, self).__init__('bdi', False, *children, **attributes)
+    tag = 'bdi'
 
 class Bdo(_Element):
     """Represents an HTML bdo element."""
 
-    def __init__(self, *children, **attributes):
-        super(Bdo, self).__init__('bdo', False, *children, **attributes)
+    tag = 'bdo'
 
 class Big(_Element):
     """Represents an HTML big element."""
 
-    def __init__(self, *children, **attributes):
-        super(Big, self).__init__('big', False, *children, **attributes)
+    tag = 'big'
+
 
 class Blockquote(_Element):
     """Represents an HTML blockquote element."""
 
-    def __init__(self, *children, **attributes):
-        super(Blockquote, self).__init__('blockquote', False, *children, **attributes)
+    tag = 'blockquote'
+
 
 class Body(_Element):
     """Represents an HTML body element."""
 
-    def __init__(self, *children, **attributes):
-        super(Body, self).__init__('body', False, *children, **attributes)
+    tag = 'body'
+
 
 class Br(_Element):
     """Represents an HTML br element."""
 
-    def __init__(self, *children, **attributes):
-        super(Br, self).__init__('br', True, *children, **attributes)
+    tag = 'br'
+
 
 class Button(_Element):
     """Represents an HTML button element."""
 
-    def __init__(self, *children, **attributes):
-        super(Button, self).__init__('button', False, *children, **attributes)
+    tag = 'button'
+
 
 class Canvas(_Element):
     """Represents an HTML canvas element."""
 
-    def __init__(self, *children, **attributes):
-        super(Canvas, self).__init__('canvas', False, *children, **attributes)
+    tag = 'canvas'
+
 
 class Caption(_Element):
     """Represents an HTML caption element."""
 
-    def __init__(self, *children, **attributes):
-        super(Caption, self).__init__('caption', False, *children, **attributes)
+    tag = 'caption'
+
 
 class Cite(_Element):
     """Represents an HTML cite element."""
 
-    def __init__(self, *children, **attributes):
-        super(Cite, self).__init__('cite', False, *children, **attributes)
+    tag = 'cite'
+
 
 class Code(_Element):
     """Represents an HTML code element."""
 
-    def __init__(self, *children, **attributes):
-        super(Code, self).__init__('code', False, *children, **attributes)
+    tag = 'code'
+
 
 class Col(_Element):
     """Represents an HTML col element."""
 
-    def __init__(self, *children, **attributes):
-        super(Col, self).__init__('col', True, *children, **attributes)
+    tag = 'col'
+    is_empty = True
+
 
 class Colgroup(_Element):
     """Represents an HTML colgroup element."""
 
-    def __init__(self, *children, **attributes):
-        super(Colgroup, self).__init__('colgroup', False, *children, **attributes)
+    tag = 'colgroup'
+
 
 class Data(_Element):
     """Represents an HTML data element."""
 
-    def __init__(self, *children, **attributes):
-        super(Data, self).__init__('data', False, *children, **attributes)
+    tag = 'data'
+
 
 class Datalist(_Element):
     """Represents an HTML datalist element."""
 
-    def __init__(self, *children, **attributes):
-        super(Datalist, self).__init__('datalist', False, *children, **attributes)
+    tag = 'datalist'
+
 
 class Dd(_Element):
     """Represents an HTML dd element."""
 
-    def __init__(self, *children, **attributes):
-        super(Dd, self).__init__('dd', False, *children, **attributes)
+    tag = 'dd'
+
 
 class Del(_Element):
     """Represents an HTML del element."""
 
-    def __init__(self, *children, **attributes):
-        super(Del, self).__init__('del', False, *children, **attributes)
+    tag = 'del'
+
 
 class Details(_Element):
     """Represents an HTML details element."""
 
-    def __init__(self, *children, **attributes):
-        super(Details, self).__init__('details', False, *children, **attributes)
+    tag = 'details'
+
 
 class Dfn(_Element):
     """Represents an HTML dfn element."""
 
-    def __init__(self, *children, **attributes):
-        super(Dfn, self).__init__('dfn', False, *children, **attributes)
+    tag = 'dfn'
+
 
 class Dialog(_Element):
     """Represents an HTML dialog element."""
 
-    def __init__(self, *children, **attributes):
-        super(Dialog, self).__init__('dialog', False, *children, **attributes)
+    tag = 'dialog'
+
 
 class Div(_Element):
     """Represents an HTML div element."""
 
-    def __init__(self, *children, **attributes):
-        super(Div, self).__init__('div', False, *children, **attributes)
+    tag = 'div'
+
 
 class Dl(_Element):
     """Represents an HTML dl element."""
 
-    def __init__(self, *children, **attributes):
-        super(Dl, self).__init__('dl', False, *children, **attributes)
+    tag = 'dl'
+
 
 class Dt(_Element):
     """Represents an HTML dt element."""
 
-    def __init__(self, *children, **attributes):
-        super(Dt, self).__init__('dt', False, *children, **attributes)
+    tag = 'dt'
+
 
 class Em(_Element):
     """Represents an HTML em element."""
 
-    def __init__(self, *children, **attributes):
-        super(Em, self).__init__('em', False, *children, **attributes)
+    tag = 'em'
+
 
 class Embed(_Element):
     """Represents an HTML embed element."""
 
-    def __init__(self, *children, **attributes):
-        super(Embed, self).__init__('embed', True, *children, **attributes)
+    tag = 'embed'
+    is_empty = True
+
 
 class Fieldset(_Element):
     """Represents an HTML fieldset element."""
 
-    def __init__(self, *children, **attributes):
-        super(Fieldset, self).__init__('fieldset', False, *children, **attributes)
+    tag = 'fieldset'
+
 
 class Footer(_Element):
     """Represents an HTML footer element."""
 
-    def __init__(self, *children, **attributes):
-        super(Footer, self).__init__('footer', False, *children, **attributes)
+    tag = 'footer'
+
 
 class Form(_Element):
     """Represents an HTML form element."""
 
-    def __init__(self, *children, **attributes):
-        super(Form, self).__init__('form', False, *children, **attributes)
+    tag = 'form'
 
 class Frame(_Element):
     """Represents an HTML frame element."""
 
-    def __init__(self, *children, **attributes):
-        super(Frame, self).__init__('frame', True, *children, **attributes)
+    tag = 'frame'
+    is_empty = True
+
 
 class Frameset(_Element):
     """Represents an HTML frameset element."""
 
-    def __init__(self, *children, **attributes):
-        super(Frameset, self).__init__('frameset', False, *children, **attributes)
+    tag = 'frameset'
+
 
 class H1(_Element):
     """Represents an HTML h1 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H1, self).__init__('h1', False, *children, **attributes)
+    tag = 'h1'
+
 
 class H2(_Element):
     """Represents an HTML h2 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H2, self).__init__('h2', False, *children, **attributes)
+    tag = 'h2'
+
 
 class H3(_Element):
     """Represents an HTML h3 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H3, self).__init__('h3', False, *children, **attributes)
+    tag = 'h3'
+
 
 class H4(_Element):
     """Represents an HTML h4 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H4, self).__init__('h4', False, *children, **attributes)
+    tag = 'h4'
+
 
 class H5(_Element):
     """Represents an HTML h5 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H5, self).__init__('h5', False, *children, **attributes)
+    tag = 'h5'
+
 
 class H6(_Element):
     """Represents an HTML h6 element."""
 
-    def __init__(self, *children, **attributes):
-        super(H6, self).__init__('h6', False, *children, **attributes)
+    tag = 'h6'
+
 
 class Head(_Element):
     """Represents an HTML head element."""
 
-    def __init__(self, *children, **attributes):
-        super(Head, self).__init__('head', False, *children, **attributes)
+    tag = 'head'
+
 
 class Header(_Element):
     """Represents an HTML header element."""
 
-    def __init__(self, *children, **attributes):
-        super(Header, self).__init__('header', False, *children, **attributes)
+    tag = 'header'
+
 
 class Hr(_Element):
     """Represents an HTML hr element."""
 
-    def __init__(self, *children, **attributes):
-        super(Hr, self).__init__('hr', True, *children, **attributes)
+    tag = 'hr'
+
 
 class Html(_Element):
     """Represents an HTML html element."""
 
-    def __init__(self, *children, **attributes):
-        super(Html, self).__init__('html', False, *children, **attributes)
+    tag = 'html'
+
 
     def body(self):
         "Returns the body child element, if present, or None."""
@@ -477,338 +477,346 @@ class Html(_Element):
 class I(_Element): # pylint: disable=invalid-name
     """Represents an HTML i element."""
 
-    def __init__(self, *children, **attributes):
-        super(I, self).__init__('i', False, *children, **attributes)
+    tag = 'i'
+
 
 class Iframe(_Element):
     """Represents an HTML iframe element."""
 
-    def __init__(self, *children, **attributes):
-        super(Iframe, self).__init__('iframe', False, *children, **attributes)
+    tag = 'iframe'
+
 
 class Img(_Element):
     """Represents an HTML img element."""
 
-    def __init__(self, *children, **attributes):
-        super(Img, self).__init__('img', True, *children, **attributes)
+    tag = 'img'
+    is_empty = True
+
 
 class Input(_Element):
     """Represents an HTML input element."""
 
-    def __init__(self, *children, **attributes):
-        super(Input, self).__init__('input', True, *children, **attributes)
+    tag = 'input'
+    is_empty = True
+
 
 class Ins(_Element):
     """Represents an HTML ins element."""
 
-    def __init__(self, *children, **attributes):
-        super(Ins, self).__init__('ins', False, *children, **attributes)
+    tag = 'ins'
+
 
 class Keygen(_Element):
     """Represents an HTML keygen element."""
 
-    def __init__(self, *children, **attributes):
-        super(Keygen, self).__init__('keygen', True, *children, **attributes)
+    tag = 'keygen'
+
 
 class Kbd(_Element):
     """Represents an HTML kbd element."""
 
-    def __init__(self, *children, **attributes):
-        super(Kbd, self).__init__('kbd', False, *children, **attributes)
+    tag = 'kbd'
+
 
 class Label(_Element):
     """Represents an HTML label element."""
 
-    def __init__(self, *children, **attributes):
-        super(Label, self).__init__('label', False, *children, **attributes)
+    tag = 'label'
 
 class Legend(_Element):
     """Represents an HTML legend element."""
 
-    def __init__(self, *children, **attributes):
-        super(Legend, self).__init__('legend', False, *children, **attributes)
+    tag = 'legend'
+
 
 class Li(_Element):
     """Represents an HTML li element."""
 
-    def __init__(self, *children, **attributes):
-        super(Li, self).__init__('li', False, *children, **attributes)
+    tag = 'li'
+
 
 class Link(_Element):
     """Represents an HTML link element."""
 
-    def __init__(self, *children, **attributes):
-        super(Link, self).__init__('link', True, *children, **attributes)
+    tag = 'link'
+    is_empty = True
+
 
 class Meta(_Element):
     """Represents an HTML meta element."""
 
-    def __init__(self, *children, **attributes):
-        super(Meta, self).__init__('meta', True, *children, **attributes)
+    tag = 'meta'
+    is_empty = True
+
 
 class Meter(_Element):
     """Represents an HTML meter element."""
 
-    def __init__(self, *children, **attributes):
-        super(Meter, self).__init__('meter', False, *children, **attributes)
+    tag = 'meter'
+    is_empty = True
+
 
 class Map(_Element):
     """Represents an HTML map element."""
 
-    def __init__(self, *children, **attributes):
-        super(Map, self).__init__('map', False, *children, **attributes)
+    tag = 'map'
+
 
 class Noframes(_Element):
     """Represents an HTML noframes element."""
 
-    def __init__(self, *children, **attributes):
-        super(Noframes, self).__init__('noframes', False, *children, **attributes)
+    tag = 'noframes'
+
 
 class Noscript(_Element):
     """Represents an HTML noscript element."""
 
-    def __init__(self, *children, **attributes):
-        super(Noscript, self).__init__('noscript', False, *children, **attributes)
+    tag = 'noscript'
+
 
 class Object(_Element):
     """Represents an HTML object element."""
 
-    def __init__(self, *children, **attributes):
-        super(Object, self).__init__('object', False, *children, **attributes)
+    tag = 'object'
+
 
 class Ol(_Element):
     """Represents an HTML ol element."""
 
-    def __init__(self, *children, **attributes):
-        super(Ol, self).__init__('ol', False, *children, **attributes)
+    tag = 'ol'
+
 
 class Optgroup(_Element):
     """Represents an HTML optgroup element."""
 
-    def __init__(self, *children, **attributes):
-        super(Optgroup, self).__init__('optgroup', False, *children, **attributes)
+    tag = 'optgroup'
+
 
 class Option(_Element):
     """Represents an HTML option element."""
 
-    def __init__(self, *children, **attributes):
-        super(Option, self).__init__('option', False, *children, **attributes)
+    tag = 'option'
+
 
 class Output(_Element):
     """Represents an HTML output element."""
 
-    def __init__(self, *children, **attributes):
-        super(Output, self).__init__('output', False, *children, **attributes)
+    tag = 'output'
+
 
 class P(_Element): # pylint: disable=invalid-name
     """Represents an HTML p element."""
 
-    def __init__(self, *children, **attributes):
-        super(P, self).__init__('p', False, *children, **attributes)
+    tag = 'p'
+
 
 class Param(_Element):
     """Represents an HTML param element."""
 
-    def __init__(self, *children, **attributes):
-        super(Param, self).__init__('param', True, *children, **attributes)
+    tag = 'param'
+    is_empty = True
+
 
 class Pre(_Element):
     """Represents an HTML pre element."""
 
-    def __init__(self, *children, **attributes):
-        super(Pre, self).__init__('pre', False, *children, **attributes)
+    tag = 'pre'
+
 
 class Progress(_Element):
     """Represents an HTML progress element."""
 
-    def __init__(self, *children, **attributes):
-        super(Progress, self).__init__('progress', False, *children, **attributes)
+    tag = 'progress'
+
 
 class Rp(_Element):
     """Represents an HTML rp element."""
 
-    def __init__(self, *children, **attributes):
-        super(Rp, self).__init__('rp', False, *children, **attributes)
+    tag = 'rp'
+
 
 class Rt(_Element):
     """Represents an HTML rt element."""
 
-    def __init__(self, *children, **attributes):
-        super(Rt, self).__init__('rt', False, *children, **attributes)
+    tag = 'rt'
+
 
 class Ruby(_Element):
     """Represents an HTML ruby element."""
 
-    def __init__(self, *children, **attributes):
-        super(Ruby, self).__init__('ruby', False, *children, **attributes)
+    tag = 'ruby'
+
 
 class Q(_Element): # pylint: disable=invalid-name
     """Represents an HTML q element."""
 
-    def __init__(self, *children, **attributes):
-        super(Q, self).__init__('q', False, *children, **attributes)
+    tag = 'q'
+
 
 class Samp(_Element):
     """Represents an HTML samp element."""
 
-    def __init__(self, *children, **attributes):
-        super(Samp, self).__init__('samp', False, *children, **attributes)
+    tag = 'samp'
+
 
 class Script(_Element):
     """Represents an HTML script element."""
 
-    def __init__(self, *children, **attributes):
-        super(Script, self).__init__('script', False, *children, **attributes)
+    tag = 'script'
+
 
 class Select(_Element):
     """Represents an HTML select element."""
 
-    def __init__(self, *children, **attributes):
-        super(Select, self).__init__('select', False, *children, **attributes)
+    tag = 'select'
+
 
 class Small(_Element):
     """Represents an HTML small element."""
 
-    def __init__(self, *children, **attributes):
-        super(Small, self).__init__('small', False, *children, **attributes)
+    tag = 'small'
+
 
 class Source(_Element):
     """Represents an HTML source element."""
 
-    def __init__(self, *children, **attributes):
-        super(Source, self).__init__('source', True, *children, **attributes)
+    tag = 'source'
+    is_empty = True
+
 
 class Span(_Element):
     """Represents an HTML span element."""
 
-    def __init__(self, *children, **attributes):
-        super(Span, self).__init__('span', False, *children, **attributes)
+    tag = 'span'
+
 
 class Strong(_Element):
     """Represents an HTML strong element."""
 
-    def __init__(self, *children, **attributes):
-        super(Strong, self).__init__('strong', False, *children, **attributes)
+    tag = 'strong'
+
 
 class Style(_Element):
     """Represents an HTML style element."""
 
-    def __init__(self, *children, **attributes):
-        super(Style, self).__init__('style', False, *children, **attributes)
+    tag = 'style'
+
 
 class Sub(_Element):
     """Represents an HTML sub element."""
 
-    def __init__(self, *children, **attributes):
-        super(Sub, self).__init__('sub', False, *children, **attributes)
+    tag = 'sub'
+
 
 class Summary(_Element):
     """Represents an HTML summary element."""
 
-    def __init__(self, *children, **attributes):
-        super(Summary, self).__init__('summary', False, *children, **attributes)
+    tag = 'summary'
+
 
 class Sup(_Element):
     """Represents an HTML sup element."""
 
-    def __init__(self, *children, **attributes):
-        super(Sup, self).__init__('sup', False, *children, **attributes)
+    tag = 'sup'
+
 
 class Table(_Element):
     """Represents an HTML table element."""
 
-    def __init__(self, *children, **attributes):
-        super(Table, self).__init__('table', False, *children, **attributes)
+    tag = 'table'
+
 
 class Tbody(_Element):
     """Represents an HTML tbody element."""
 
-    def __init__(self, *children, **attributes):
-        super(Tbody, self).__init__('tbody', False, *children, **attributes)
+    tag = 'tbody'
+
 
 class Td(_Element):
     """Represents an HTML td element."""
 
-    def __init__(self, *children, **attributes):
-        super(Td, self).__init__('td', False, *children, **attributes)
+    tag = 'td'
+
 
 class Textarea(_Element):
     """Represents an HTML textarea element."""
 
-    def __init__(self, *children, **attributes):
-        super(Textarea, self).__init__('textarea', False, *children, **attributes)
+    tag = 'textarea'
+
 
 class Tfoot(_Element):
     """Represents an HTML tfoot element."""
 
-    def __init__(self, *children, **attributes):
-        super(Tfoot, self).__init__('tfoot', False, *children, **attributes)
+    tag = 'tfoot'
+
 
 class Th(_Element):
     """Represents an HTML th element."""
 
-    def __init__(self, *children, **attributes):
-        super(Th, self).__init__('th', False, *children, **attributes)
+    tag = 'th'
+
 
 class Thead(_Element):
     """Represents an HTML thead element."""
 
-    def __init__(self, *children, **attributes):
-        super(Thead, self).__init__('thead', False, *children, **attributes)
+    tag = 'thead'
+
 
 class Time(_Element):
     """Represents an HTML time element."""
 
-    def __init__(self, *children, **attributes):
-        super(Time, self).__init__('time', False, *children, **attributes)
+    tag = 'time'
+
 
 class Title(_Element):
     """Represents an HTML title element."""
 
-    def __init__(self, *children, **attributes):
-        super(Title, self).__init__('title', False, *children, **attributes)
+    tag = 'title'
+
 
 class Tr(_Element):
     """Represents an HTML tr element."""
 
-    def __init__(self, *children, **attributes):
-        super(Tr, self).__init__('tr', False, *children, **attributes)
+    tag = 'tr'
+
 
 class Track(_Element):
     """Represents an HTML track element."""
 
-    def __init__(self, *children, **attributes):
-        super(Track, self).__init__('track', True, *children, **attributes)
+    tag = 'track'
+    is_empty = True
+
 
 class Tt(_Element):
     """Represents an HTML tt element."""
 
-    def __init__(self, *children, **attributes):
-        super(Tt, self).__init__('tt', False, *children, **attributes)
+    tag = 'tt'
+
 
 class Ul(_Element):
     """Represents an HTML ul element."""
 
-    def __init__(self, *children, **attributes):
-        super(Ul, self).__init__('ul', False, *children, **attributes)
+    tag = 'ul'
+
 
 class Var(_Element):
     """Represents an HTML var element."""
 
-    def __init__(self, *children, **attributes):
-        super(Var, self).__init__('var', False, *children, **attributes)
+    tag = 'var'
+
 
 class Video(_Element):
     """Represents an HTML video element."""
 
-    def __init__(self, *children, **attributes):
-        super(Video, self).__init__('video', False, *children, **attributes)
+    tag = 'video'
+
 
 class Wbr(_Element):
     """Represents an HTML wbr element."""
 
-    def __init__(self, *children, **attributes):
-        super(Wbr, self).__init__('wbr', True, *children, **attributes)
+    tag = 'wbr'
+    is_empty = True
+
 
 
 
