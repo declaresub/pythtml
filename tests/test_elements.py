@@ -1,112 +1,133 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, unicode_literals, division, print_function
 
 import sys
 import pytest
 import uuid
 
+from pyfive.elements import _Element
 from pyfive import *
-from pyfive.elements import _BaseElement
 
-text = unicode if sys.version_info.major == 2 else str
-
-
-@pytest.mark.parametrize("input, expected", [
-    (u'foo', u'foo'),
-    ('test', u'test'),
-    (43, '43'),
-    (True, 'True'),
-    (uuid.UUID('4dc19bc5-af42-4af7-9660-1ce2df9a6005'), '4dc19bc5-af42-4af7-9660-1ce2df9a6005')
-    ])
-def test_textify(input, expected):
-    base = _BaseElement()
-    u_value = base.textify(input)
-    assert isinstance(u_value, base.text) and u_value == expected
+def test_Element_init():
+    value = 'foo'
+    children = ['foo']
+    attributes = {'id': 'bar'}
+    
+    element = _Element(*children, **attributes)
+    assert element.children() == children
+    assert element.attributes == attributes
 
 
 def test_html():
-    assert text(Html()) == u'<!DOCTYPE html>\n<html></html>'
+    assert str(Html(Head(), Body())) == '<!DOCTYPE html>\n<html><head><meta charset="utf-8"></head><body></body></html>'
+
+@pytest.mark.parametrize("args", [
+    (None, Body()),
+    (Head(), None)
+    ])
+def test_html_bad_args(args):
+    with pytest.raises(ValueError):
+        Html(*args)
+
+def test_html_encoding_set():
+    encoding = 'iso-8859-1'
+    html = Html(Head(), Body())
+    html.encoding = encoding
+    assert html.encoding == encoding
+
+def test_element_str():
+    element = Div(Div(P('test', id='foo')))
+    assert str(element) == '<div><div><p id="foo">test</p></div></div>'
 
 @pytest.mark.parametrize("input, expected", [
-    (u'foo', u'<p>foo</p>'),
-    ('test', u'<p>test</p>'),
+    ('foo', '<p>foo</p>'),
     (43, u'<p>43</p>'),
     (True, u'<p>True</p>'),
     (uuid.UUID('4dc19bc5-af42-4af7-9660-1ce2df9a6005'), u'<p>4dc19bc5-af42-4af7-9660-1ce2df9a6005</p>')
     ])
 def test_p(input, expected):
-    assert text(P(input)) == expected
+    assert str(P(input)) == expected
 
-  
-def test_attr():  
-    assert text(Meta(charset='utf-8')) == u'<meta charset="utf-8">'
-   
-def test_demangle_kw():
-    assert text(Div(class_='foo')) == '<div class="foo"></div>'
-     
-def test_demangle_data_attr():
-    assert text(Div(data_foo='bar')) == '<div data-foo="bar"></div>'
-    
-def test_demangle_else():
-    assert text(Div(id='foo')) == '<div id="foo"></div>'
-    
-def test_demangle_else():
-    assert text(Div(Id='foo')) == '<div Id="foo"></div>'  
-    
-def test_attribute_emdash_utf_8():
-    em_dash = b'\xe2\x80\x94'
-    assert text(Div(test=em_dash)) == '<div test="\u2014"></div>'
-       
-def test_attribute_quoted():
-    assert text(Div(test='"foo"')) == '<div test=\'"foo"\'></div>'
 
-def test_HTMLAttribute_int():
-    assert text(Div(test=1)) == '<div test="1"></div>'
+def test_html_bytes():
+    html = Html(Head(), Body(P('испытание')))
+    data = b'<!DOCTYPE html>\n<html><head><meta charset="utf-8"></head><body><p>\xd0\xb8\xd1\x81\xd0\xbf\xd1\x8b\xd1\x82\xd0\xb0\xd0\xbd\xd0\xb8\xd0\xb5</p></body></html>'
+    assert bytes(html) == data
 
-def test_HTMLAttribute_unicode_boolean():
-    assert text(Script(async=True)) == '<script async></script>'
+@pytest.mark.parametrize('input, expected', [
+    (P('test'), None),
+    ('x < y', 'x &lt; y'),
+    ])
+def test_append(input, expected):
+    div = Div()
+    div.append(input)
+    assert div.children() == [input if expected is None else expected]
 
-def test_HTMLAttribute_unicode_boolean_false():
-    assert text(Script(async=False)) == '<script></script>'
+def test_append_none():
+    div = Div()
+    div.append(None)
+    assert div.children() == []
 
-def test_HTMLAttribute_unicode_boolean_none():
-    assert text(Script(async=None)) == '<script></script>'
-    
+def test_insert_none():
+    div = Div()
+    div.insert(0, None)
+    assert div.children() == []
+
+def test_children_tag():
+    children = [P(), Div()]
+    div = Div(*children)
+    assert div.children(tag='p') == children[0:1]
+
+def test_remove():
+    children = [P(), Div()]
+    div = Div(*children)
+    div.remove(children[0])
+    assert div.children() == children[1:2]
+
+def test_find_by_id():
+    id_element = P(id='foo')
+    div = Div(Div(id_element))
+    assert div.find_by_id('foo') == id_element
+
+def test_find_by_id_miss():
+    id_element = P(id='foo')
+    div = Div(Div(id_element))
+    assert div.find_by_id('bar') is None
+
+def test_empty_element_str():
+    area = Area(shape='circle', coords='75,75,75', href='left.html', alt='Click to go Left')
+    assert str(area) == '<area shape="circle" coords="75,75,75" href="left.html" alt="Click to go Left">'
+
 def test_raw():
-    assert text(Body(Raw('<script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script>'))) == '<body><script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script></body>'
-    
+    assert str(Raw('<script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script>')) == '<script>var x = 1 < 2; var y = x > 1 ? 3 && 5 : 0;</script>'
+
+def test_html_head():
+    head = Head()
+    body = Body()
+    html = Html(head, body)
+    assert html.head == head
+
+def test_html_body():
+    head = Head()
+    body = Body()
+    html = Html(head, body)
+    assert html.body == body
+
 def test_null_child():
-    assert text(Div(None)) == '<div></div>'
+    assert str(Div(None)) == '<div></div>'
 
-def test_name_attribute():
-    assert Meta(name='viewport', content='width=1236')
+def test_demangle_kw():
+    assert str(Div(class_='foo')) == '<div class="foo"></div>'
+
+def test_demangle_data_attr():
+    assert str(Div(data_foo='bar')) == '<div data-foo="bar"></div>'
     
-def test_html_head_body():
-    resource = Html(Head(), Body())
-    assert text(resource) == u'<!DOCTYPE html>\n<html><head></head><body></body></html>'
-
-def test_find_self_by_id():
-    foo = 'foo'
-    element = P(id=foo)
-    print(element.attributes)
-    assert element.find_by_id(foo) == element
-
-def test_find_child_by_id():
-    foo = 'foo'
-    id_element = P(id=foo)
-    parent = P(id_element)
-    assert parent.find_by_id(foo) == id_element
-    
-def test_append():
-    parent = Div()
-    child = Div()
-    parent.append(child)
-    assert parent.children() == [child]
-    
-def test_children_filtered():
-    img = Img()
-    children = [u'foo', P(), img, P()]
-    parent = Div(*children)
-    assert parent.children(tag='img') == [img]
-
+@pytest.mark.parametrize("input, expected", [
+    (Div(test='"foo"'), '<div test=\'"foo"\'></div>'),
+    (Div(test=1), '<div test="1"></div>'),
+    (Script(async=True), '<script async></script>'),
+    (Script(async=False), '<script></script>'),
+    (Script(async=None), '<script></script>'),
+    ])
+def test_attribute_quoted(input, expected):
+    assert str(input) == expected

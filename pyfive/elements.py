@@ -2,52 +2,23 @@
 
 """pyfive elements."""
 
-from __future__ import absolute_import, unicode_literals, division, print_function
-
 import sys
-try:
-    from html import escape
-except ImportError:
-    from cgi import escape
-
+from html import escape
 from xml.sax.saxutils import quoteattr
 from keyword import kwlist
+from itertools import chain
 
+__all__ = []
 
-#pylint: disable=too-few-public-methods
-class _BaseElement(object):
-    """
-    Implements the str/unicode functionality for Element classes.
-    pyfive prefers Unicode input.  If you pass strings, they are assumed to be UTF-8.
-    """
-
-    ENCODING = 'utf-8'
-    is2 = sys.version_info.major == 2
-    text = unicode if is2 else str # pylint: disable=undefined-variable
-    bytes = str if is2 else bytes
-
-    def __init__(self):
-        super(_BaseElement, self).__init__()
-
-    def textify(self, value):
-        """Takes the argument s and returns a unicode object.  Intended to work on anything
-        that supports conversion to string; e.g. int, bool, uuid."""
-
-        if isinstance(value, self.text):
-            return value
-        else:
-            return value.decode(self.ENCODING) if hasattr(value, 'decode') else self.text(value)
-
-
-class _Element(_BaseElement):
+class _Element(object):
     """Implements HTML element functions."""
-
-    # these attributes must be set in subclasses.
+    
+    # tag must be set in subclasses.
     tag = None
     is_empty = False
 
     # used for attribute names.
-    kwmap = {u'%s_' % kw: _BaseElement.text(kw) for kw in kwlist}
+    kwmap = {u'%s_' % kw: str(kw) for kw in kwlist}
 
     def __init__(self, *children, **attributes):
         # Name clashes with keywords are resolved by appending _ as suggested by PEP 8.
@@ -72,7 +43,6 @@ class _Element(_BaseElement):
     def _attr_name(self, name):
         """ Implements attribute name conventions."""
 
-        name = self.textify(name)
         return name.replace(u'_', u'-') if name.startswith(u'data_') else self.kwmap.get(name, name)
 
     def _generate_attrs(self):
@@ -81,27 +51,18 @@ class _Element(_BaseElement):
         #if isinstance(attr_value, bool), then I assume that __init__ filtered out attributes.
         # with value False.
         return u' '.join([attr_name if isinstance(attr_value, bool)
-            else '%s=%s' % (attr_name, quoteattr(self.textify(attr_value)))
+            else '%s=%s' % (attr_name, quoteattr(str(attr_value)))
             for attr_name, attr_value in self.attributes.items()])
 
-    def __unicode__(self):
-        if self.is_empty:
-            return u'<%s%s%s>' % (self.tag, ' ' if self.attributes else '', self._generate_attrs())
-        else:
-            return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>'
-                if self.tag == u'html' else u'<%s%s%s>%s</%s>') % (
-                self.tag,
-                ' ' if self.attributes else '',
-                self._generate_attrs(),
-                ''.join([child if isinstance(child, self.text) else child.__unicode__() for child in self._children]),
-                self.tag
-                )
-
-    def __bytes__(self):
-        return self.__unicode__().encode(self.ENCODING)
-
     def __str__(self):
-        return self.__bytes__() if self.is2 else self.__unicode__()
+        return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>'
+            if self.tag == u'html' else u'<%s%s%s>%s</%s>') % (
+            self.tag,
+            ' ' if self.attributes else '',
+            self._generate_attrs(),
+            ''.join([str(child) for child in self._children]),
+            self.tag
+            )
 
     def children(self, tag=None):
         """Returns a list of all children in the order added.
@@ -109,15 +70,25 @@ class _Element(_BaseElement):
         
         return [x for x in self._children if tag is None or getattr(x, 'tag', None) == tag]
 
+    def _escape_child(self, child):
+        return child if isinstance(child, _Element) else escape(str(child), quote=False)
+
     def append(self, child):
         """Appends child element."""
 
         if child is None:
             return
 
-        self._children.append(child if isinstance(child, _BaseElement) #pylint: disable=deprecated-method
-            else escape(self.textify(child), quote=False))
+        self._children.append(self._escape_child(child))
 
+    def insert(self, offset, child):
+        """Inserts child element at offset."""
+
+        if child is None:
+            return
+            
+        self._children.insert(offset, self._escape_child(child))
+        
     def remove(self, child):
         """Removes child element from children, if present."""
 
@@ -139,31 +110,32 @@ class _Element(_BaseElement):
                 element = None
             return element
 
+class _EmptyElement(_Element):
+    """Implements HTML empty element classes."""
 
-class Raw(_BaseElement):
+    is_empty = True
+
+    def __init__(self, **attributes):
+        super(_EmptyElement, self).__init__(**attributes)
+
+    def __str__(self):
+        return u'<%s%s%s>' % (self.tag, ' ' if self.attributes else '', self._generate_attrs())
+            
+class Raw(_Element):
     """Implements the raw function."""
 
-    def __init__(self, data, *args, **kwargs):
+    def __init__(self, data):
         """Wraps a string that should not be escaped; e.g. javaascript code, or an HTML
         element already rendered as a string.
 
-        :data: a str | unicode | bytes object.
+        :data: a str object.
         """
 
-        super(Raw, self).__init__(*args, **kwargs)
-        self.data = self.textify(data)
-
-    def __unicode__(self):
-        # should only be invoked in python 2.
-        return self.data
-
-    def __bytes__(self):
-        # should only be invoked in python 3, but I'll handle both versions anyway.
-        return self.data.encode(self.ENCODING)
+        super(Raw, self).__init__()
+        self.data = str(data)
 
     def __str__(self):
-        return self.__bytes__()
-
+        return self.data
 
 # HTML element subclasses.
 
@@ -192,11 +164,11 @@ class Address(_Element):
     tag = 'address'
 
 
-class Area(_Element):
+class Area(_EmptyElement):
     """Represents an HTML area element."""
 
     tag = 'area'
-    is_empty = True
+    
 
 class Article(_Element):
     """Represents an HTML article element."""
@@ -286,11 +258,11 @@ class Code(_Element):
     tag = 'code'
 
 
-class Col(_Element):
+class Col(_EmptyElement):
     """Represents an HTML col element."""
 
     tag = 'col'
-    is_empty = True
+    
 
 
 class Colgroup(_Element):
@@ -365,11 +337,11 @@ class Em(_Element):
     tag = 'em'
 
 
-class Embed(_Element):
+class Embed(_EmptyElement):
     """Represents an HTML embed element."""
 
     tag = 'embed'
-    is_empty = True
+    
 
 
 class Fieldset(_Element):
@@ -389,11 +361,11 @@ class Form(_Element):
 
     tag = 'form'
 
-class Frame(_Element):
+class Frame(_EmptyElement):
     """Represents an HTML frame element."""
 
     tag = 'frame'
-    is_empty = True
+    
 
 
 class Frameset(_Element):
@@ -461,18 +433,55 @@ class Html(_Element):
 
     tag = 'html'
 
+    def __init__(self, head, body, *, encoding='utf-8', **attributes):
+        if head is None:
+            raise ValueError('head element must not be None.')
+        if body is None:
+            raise ValueError('head element must not be None.')
 
+        super(Html, self).__init__(head, body, **attributes)
+        self.encoding = encoding
+
+    def _charset_meta(self):
+        """Returns meta element with charset attribute, if present, or None."""
+        head = self.head
+        meta_elements = head.children(tag='meta')
+        charset_elements = [x for x in meta_elements if 'charset' in x.attributes]
+        if charset_elements:
+            # there really should only be one.
+            return charset_elements[0]
+        else:
+            return None
+        
+    @property
+    def encoding(self):
+        charset_meta = self._charset_meta()
+        return charset_meta.attributes['charset']
+        
+    @encoding.setter
+    def encoding(self, value):
+        charset_meta = self._charset_meta()
+        if charset_meta:
+            charset_meta.attributes['charset'] = value
+        else:
+            self.head.insert(0, Meta(charset=value))
+
+    def _child(self, tag):
+        child_list = self.children(tag=tag)
+        return child_list[0] if child_list else None
+        
+    @property
     def body(self):
         "Returns the body child element, if present, or None."""
-
-        body_list = self.children(tag='body')
-        return body_list[0] if len(body_list) > 0 else None
-
+        return self._child('body')
+    
+    @property
     def head(self):
         "Returns the head child element, if present, or None."""
+        return self._child('head')
 
-        head_list = self.children(tag='head')
-        return head_list[0] if len(head_list) > 0 else None
+    def __bytes__(self):
+        return self.__str__().encode(self.encoding)
 
 class I(_Element): # pylint: disable=invalid-name
     """Represents an HTML i element."""
@@ -486,18 +495,18 @@ class Iframe(_Element):
     tag = 'iframe'
 
 
-class Img(_Element):
+class Img(_EmptyElement):
     """Represents an HTML img element."""
 
     tag = 'img'
-    is_empty = True
+    
 
 
-class Input(_Element):
+class Input(_EmptyElement):
     """Represents an HTML input element."""
 
     tag = 'input'
-    is_empty = True
+    
 
 
 class Ins(_Element):
@@ -535,25 +544,25 @@ class Li(_Element):
     tag = 'li'
 
 
-class Link(_Element):
+class Link(_EmptyElement):
     """Represents an HTML link element."""
 
     tag = 'link'
-    is_empty = True
+    
 
 
-class Meta(_Element):
+class Meta(_EmptyElement):
     """Represents an HTML meta element."""
 
     tag = 'meta'
-    is_empty = True
+    
 
 
-class Meter(_Element):
+class Meter(_EmptyElement):
     """Represents an HTML meter element."""
 
     tag = 'meter'
-    is_empty = True
+    
 
 
 class Map(_Element):
@@ -610,11 +619,11 @@ class P(_Element): # pylint: disable=invalid-name
     tag = 'p'
 
 
-class Param(_Element):
+class Param(_EmptyElement):
     """Represents an HTML param element."""
 
     tag = 'param'
-    is_empty = True
+    
 
 
 class Pre(_Element):
@@ -677,11 +686,11 @@ class Small(_Element):
     tag = 'small'
 
 
-class Source(_Element):
+class Source(_EmptyElement):
     """Represents an HTML source element."""
 
     tag = 'source'
-    is_empty = True
+    
 
 
 class Span(_Element):
@@ -780,11 +789,11 @@ class Tr(_Element):
     tag = 'tr'
 
 
-class Track(_Element):
+class Track(_EmptyElement):
     """Represents an HTML track element."""
 
     tag = 'track'
-    is_empty = True
+    
 
 
 class Tt(_Element):
@@ -811,11 +820,11 @@ class Video(_Element):
     tag = 'video'
 
 
-class Wbr(_Element):
+class Wbr(_EmptyElement):
     """Represents an HTML wbr element."""
 
     tag = 'wbr'
-    is_empty = True
+    
 
 
 
@@ -941,3 +950,8 @@ class Wbr(_Element):
 #     print class_template % dict(cls=tag.title(), tag=tag, is_empty=is_empty)
 #     print ''
 
+
+for subcls in chain(_Element.__subclasses__(), _EmptyElement.__subclasses__()):
+    if subcls != _EmptyElement:
+        __all__.append(subcls.__name__)
+ 
