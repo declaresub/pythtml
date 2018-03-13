@@ -2,17 +2,16 @@
 
 """pyfive elements."""
 
-import sys
 from html import escape
 from xml.sax.saxutils import quoteattr
 from keyword import kwlist
-from itertools import chain
+from itertools import chain, filterfalse
 
 __all__ = []
 
 class _Element(object):
-    """Implements HTML element functions."""
-    
+    """Base class for HTML elements."""
+
     # tag must be set in subclasses.
     tag = None
     is_empty = False
@@ -67,10 +66,17 @@ class _Element(object):
     def children(self, tag=None):
         """Returns a list of all children in the order added.
         If tag is not None, then the list is filtered by tag."""
-        
+
         return [x for x in self._children if tag is None or getattr(x, 'tag', None) == tag]
 
-    def _escape_child(self, child):
+    @staticmethod
+    def _escape_child(child):
+        """Escapes some reserved HTML characters if child is a str.
+
+        :param child: a str, or _Element, for convenience.
+        :returns: str, or _Element.
+        """
+
         return child if isinstance(child, _Element) else escape(str(child), quote=False)
 
     def append(self, child):
@@ -86,9 +92,9 @@ class _Element(object):
 
         if child is None:
             return
-            
+
         self._children.insert(offset, self._escape_child(child))
-        
+
     def remove(self, child):
         """Removes child element from children, if present."""
 
@@ -99,7 +105,7 @@ class _Element(object):
         Some so-called "full stack developers" think it's okay to have multiple elements
         with the same id value. This method does not support that."""
 
-        if self.attributes.get('id') == value:
+        if self.attributes.get('id') == value: # pylint: disable=no-else-return
             return self
         else:
             for child in self._children:
@@ -111,18 +117,18 @@ class _Element(object):
             return element
 
 class _EmptyElement(_Element):
-    """Implements HTML empty element classes."""
+    """Base class for HTML empty elements."""
 
     is_empty = True
 
-    def __init__(self, **attributes):
+    def __init__(self, **attributes): # pylint: disable=useless-super-delegation
         super(_EmptyElement, self).__init__(**attributes)
 
     def __str__(self):
         return u'<%s%s%s>' % (self.tag, ' ' if self.attributes else '', self._generate_attrs())
-            
+
 class Raw(_Element):
-    """Implements the raw function."""
+    """Pseudo-element representing raw data."""
 
     def __init__(self, data):
         """Wraps a string that should not be escaped; e.g. javaascript code, or an HTML
@@ -137,12 +143,12 @@ class Raw(_Element):
     def __str__(self):
         return self.data
 
-# HTML element subclasses.
 
+# HTML element subclasses.
 
 class A(_Element): # pylint: disable=invalid-name
     """Represents an HTML a element."""
-    
+
     tag = 'a'
 
 
@@ -168,7 +174,7 @@ class Area(_EmptyElement):
     """Represents an HTML area element."""
 
     tag = 'area'
-    
+
 
 class Article(_Element):
     """Represents an HTML article element."""
@@ -262,7 +268,7 @@ class Col(_EmptyElement):
     """Represents an HTML col element."""
 
     tag = 'col'
-    
+
 
 
 class Colgroup(_Element):
@@ -341,7 +347,7 @@ class Embed(_EmptyElement):
     """Represents an HTML embed element."""
 
     tag = 'embed'
-    
+
 
 
 class Fieldset(_Element):
@@ -365,7 +371,7 @@ class Frame(_EmptyElement):
     """Represents an HTML frame element."""
 
     tag = 'frame'
-    
+
 
 
 class Frameset(_Element):
@@ -447,17 +453,15 @@ class Html(_Element):
         head = self.head
         meta_elements = head.children(tag='meta')
         charset_elements = [x for x in meta_elements if 'charset' in x.attributes]
-        if charset_elements:
-            # there really should only be one.
-            return charset_elements[0]
-        else:
-            return None
-        
+        # there really should be at most one.
+        return charset_elements[0] if charset_elements else None
+
     @property
     def encoding(self):
+        """Gets/sets encoding property."""
         charset_meta = self._charset_meta()
         return charset_meta.attributes['charset']
-        
+
     @encoding.setter
     def encoding(self, value):
         charset_meta = self._charset_meta()
@@ -467,14 +471,15 @@ class Html(_Element):
             self.head.insert(0, Meta(charset=value))
 
     def _child(self, tag):
+        """Private helper used to retrieve head | body element."""
         child_list = self.children(tag=tag)
         return child_list[0] if child_list else None
-        
+
     @property
     def body(self):
         "Returns the body child element, if present, or None."""
         return self._child('body')
-    
+
     @property
     def head(self):
         "Returns the head child element, if present, or None."""
@@ -499,14 +504,14 @@ class Img(_EmptyElement):
     """Represents an HTML img element."""
 
     tag = 'img'
-    
+
 
 
 class Input(_EmptyElement):
     """Represents an HTML input element."""
 
     tag = 'input'
-    
+
 
 
 class Ins(_Element):
@@ -548,21 +553,21 @@ class Link(_EmptyElement):
     """Represents an HTML link element."""
 
     tag = 'link'
-    
+
 
 
 class Meta(_EmptyElement):
     """Represents an HTML meta element."""
 
     tag = 'meta'
-    
+
 
 
 class Meter(_EmptyElement):
     """Represents an HTML meter element."""
 
     tag = 'meter'
-    
+
 
 
 class Map(_Element):
@@ -623,7 +628,7 @@ class Param(_EmptyElement):
     """Represents an HTML param element."""
 
     tag = 'param'
-    
+
 
 
 class Pre(_Element):
@@ -690,7 +695,7 @@ class Source(_EmptyElement):
     """Represents an HTML source element."""
 
     tag = 'source'
-    
+
 
 
 class Span(_Element):
@@ -793,7 +798,7 @@ class Track(_EmptyElement):
     """Represents an HTML track element."""
 
     tag = 'track'
-    
+
 
 
 class Tt(_Element):
@@ -824,134 +829,7 @@ class Wbr(_EmptyElement):
     """Represents an HTML wbr element."""
 
     tag = 'wbr'
-    
 
 
-
-
-# The python code used to generate the element subclass definitions
-
-# ELEMENTS = [
-#     ('a', False),
-#     ('abbr', False),
-#     ('acronym', False),
-#     ('address', False),
-#     ('area', True),
-#     ('article', False),
-#     ('audio', False),
-#     ('b', False),
-#     ('base', True),
-#     ('bdi', False),
-#     ('bdo', False),
-#     ('big', False),
-#     ('blockquote', False),
-#     ('body', False),
-#     ('br', True),
-#     ('button', False),
-#     ('canvas', False),
-#     ('caption', False),
-#     ('cite', False),
-#     ('code', False),
-#     ('col', True),
-#     ('colgroup', False),
-#     ('data', False),
-#     ('datalist', False),
-#     ('dd', False),
-#     ('del', False),
-#     ('details', False),
-#     ('dfn', False),
-#     ('dialog', False),
-#     ('div', False),
-#     ('dl', False),
-#     ('dt', False),
-#     ('em', False),
-#     ('embed', True),
-#     ('fieldset', False),
-#     ('footer', False),
-#     ('form', False),
-#     ('frame', True),
-#     ('frameset', False),
-#     ('h1', False),
-#     ('h2', False),
-#     ('h3', False),
-#     ('h4', False),
-#     ('h5', False),
-#     ('h6', False),
-#     ('head', False),
-#     ('header', False),
-#     ('hr', True),
-#     ('html', False),
-#     ('i', False),
-#     ('iframe', False),
-#     ('img', True),
-#     ('input', True),
-#     ('ins', False),
-#     ('keygen', True),
-#     ('kbd', False),
-#     ('label', False),
-#     ('legend', False),
-#     ('li', False),
-#     ('link', True),
-#     ('meta', True),
-#     ('meter', False),
-#     ('map', False),
-#     ('noframes', False),
-#     ('noscript', False),
-#     ('object', False),
-#     ('ol', False),
-#     ('optgroup', False),
-#     ('option', False),
-#     ('output', False),
-#     ('p', False),
-#     ('param', True),
-#     ('pre', False),
-#     ('progress', False),
-#     ('rp', False),
-#     ('rt', False),
-#     ('ruby', False),
-#     ('q', False),
-#     ('samp', False),
-#     ('script', False),
-#     ('select', False),
-#     ('small', False),
-#     ('source', True),
-#     ('span', False),
-#     ('strong', False),
-#     ('style', False),
-#     ('sub', False),
-#     ('summary', False),
-#     ('sup', False),
-#     ('table', False),
-#     ('tbody', False),
-#     ('td', False),
-#     ('textarea', False),
-#     ('tfoot', False),
-#     ('th', False),
-#     ('thead', False),
-#     ('time', False),
-#     ('title', False),
-#     ('tr', False),
-#     ('track', True),
-#     ('tt', False),
-#     ('ul', False),
-#     ('var', False),
-#     ('video', False),
-#     ('wbr', True)
-#     ]
-#
-#
-# class_template = """class %(cls)s(_Element):
-#     \"\"\"Represents an HTML %(tag)s element.\"\"\"
-#
-#     def __init__(self, *children, **attributes):
-#         super(%(cls)s, self).__init__('%(tag)s', %(is_empty)s, *children, **attributes)"""
-#
-# for tag, is_empty in ELEMENTS:
-#     print class_template % dict(cls=tag.title(), tag=tag, is_empty=is_empty)
-#     print ''
-
-
-for subcls in chain(_Element.__subclasses__(), _EmptyElement.__subclasses__()):
-    if subcls != _EmptyElement:
-        __all__.append(subcls.__name__)
- 
+for subcls in chain(filterfalse(lambda x: x == _EmptyElement, _Element.__subclasses__()), _EmptyElement.__subclasses__()): #pylint: disable=line-too-long
+    __all__.append(subcls.__name__)
