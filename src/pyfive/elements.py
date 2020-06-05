@@ -9,7 +9,7 @@ from itertools import chain, filterfalse
 
 __all__ = []
 
-class _Element(object):
+class _Element():
     """Base class for HTML elements."""
 
     # tag must be set in subclasses.
