@@ -1,8 +1,14 @@
 # requirements file for virtual environments.
 
 -e .
+black
+check-manifest
+pep517
 pylint
 pytest
 pytest-cov
-check-manifest
+setuptools_scm
+tox
+tox-pyenv
+twine
 wheel
