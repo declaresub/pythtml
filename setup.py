@@ -6,11 +6,9 @@ from __future__ import absolute_import, division, print_function
 # a unicode string in the packages argument.
 
 
-import io
-from setuptools import setup
+
+from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
-import json
-import string
 
 
 class Tox(TestCommand):
@@ -25,20 +23,16 @@ class Tox(TestCommand):
         sys.exit(errcode)
 
 
-def package_version():
-    with io.open('pyfive/__init__.py', 'r', encoding='utf-8') as f:
-        for sourceline in f:
-            if sourceline.strip().startswith('__version__'):
-                 return sourceline.split('=', 1)[1].strip(string.whitespace + '"\'')
-        else:
-            raise Exception('Unable to read package version.')
-
-
 setup(name='pyfive',
-    version=package_version(),
     author='Charles Yeomans', 
-    packages=['pyfive'],
-    cmdclass = {'test': Tox}
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    keywords=['web', 'html'],
+    cmdclass = {'test': Tox},
+    extras_require={':python_version < "3.8"': ["importlib_metadata"]},
+    include_package_data=True,
+    zip_safe=False,
+    options={"bdist_wheel": {"universal": "1"}},
     )
       
       
