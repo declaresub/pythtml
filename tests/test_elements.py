@@ -125,9 +125,9 @@ def test_demangle_data_attr():
 @pytest.mark.parametrize("input, expected", [
     (Div(test='"foo"'), '<div test=\'"foo"\'></div>'),
     (Div(test=1), '<div test="1"></div>'),
-    (Script(async=True), '<script async></script>'),
-    (Script(async=False), '<script></script>'),
-    (Script(async=None), '<script></script>'),
+    (Script(async_=True), '<script async></script>'),
+    (Script(async_=False), '<script></script>'),
+    (Script(async_=None), '<script></script>'),
     ])
 def test_attribute_quoted(input, expected):
     assert str(input) == expected
