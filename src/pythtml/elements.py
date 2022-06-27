@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""pyfive elements."""
+"""pythtml elements."""
 from typing import Any, Optional
 from html import escape
 from xml.sax.saxutils import quoteattr
@@ -117,7 +117,7 @@ class Raw(_Element):
     """Pseudo-element representing raw data."""
 
     def __init__(self, data: str, *, escape_data: bool=False):
-        """Set escape_data to True to escape some some reserved HTML characters in data."""
+        """Set escape_data to True to escape some reserved HTML characters in data."""
 
         super().__init__()
         self.data = escape(str(data), quote=False) if escape_data else str(data)
