@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-import sys
 import pytest
 import uuid
 
-from pyfive.elements import _Element
-from pyfive import *
+from pythtml.elements import _Element
+from pythtml import *
 
 def test_Element_init():
     value = 'foo'

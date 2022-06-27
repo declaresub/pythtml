@@ -1,4 +1,4 @@
-import pyfive
+import pythtml
 
 def test_version():
-    assert pyfive.__version__
+    assert pythtml.__version__
