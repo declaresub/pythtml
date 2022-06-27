@@ -56,7 +56,6 @@ def test_html_bytes():
 
 @pytest.mark.parametrize('input, expected', [
     (P('test'), None),
-    ('x < y', 'x &lt; y'),
     ])
 def test_append(input, expected):
     div = Div()

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """pyfive elements."""
-
+from typing import Any, Optional
 from html import escape
 from xml.sax.saxutils import quoteattr
 from keyword import kwlist
-from itertools import chain, filterfalse
 
 __all__ = []
 
@@ -13,13 +12,13 @@ class _Element():
     """Base class for HTML elements."""
 
     # tag must be set in subclasses.
-    tag = None
+    tag: str
     is_empty = False
 
     # used for attribute names.
     kwmap = {u'%s_' % kw: str(kw) for kw in kwlist}
 
-    def __init__(self, *children, **attributes):
+    def __init__(self, *children: "_Element", **attributes: Any):
         # Name clashes with keywords are resolved by appending _ as suggested by PEP 8.
         # For example to pass a class attribute as a keyword argument, use
         # class_'foo, bar'.  The trailing underscore will be stripped because 'class' is a
@@ -28,18 +27,15 @@ class _Element():
         # names, and so underscores are replaced with dashes.
 
         super(_Element, self).__init__()
-        self._children = []
+        self._children = [child for child in children if child is not None]
 
-        for child in children:
-            self.append(child)
-
-        # strip attributes having value None or False
+        # strip attributes having value None or False, but allow 0
         self.attributes = {self._attr_name(k) : v
             for k, v in attributes.items()
             if v not in (None, False)
             }
 
-    def _attr_name(self, name):
+    def _attr_name(self, name: str):
         """ Implements attribute name conventions."""
 
         return name.replace(u'_', u'-') if name.startswith(u'data_') else self.kwmap.get(name, name)
@@ -54,8 +50,8 @@ class _Element():
             for attr_name, attr_value in self.attributes.items()])
 
     def __str__(self):
-        return (u'<!DOCTYPE html>\n<%s%s%s>%s</%s>'
-            if self.tag == u'html' else u'<%s%s%s>%s</%s>') % (
+        return ('<!DOCTYPE html>\n<%s%s%s>%s</%s>'
+            if self.tag == 'html' else u'<%s%s%s>%s</%s>') % (
             self.tag,
             ' ' if self.attributes else '',
             self._generate_attrs(),
@@ -63,44 +59,34 @@ class _Element():
             self.tag
             )
 
-    def children(self, tag=None):
+    def children(self, tag: Optional[str]=None):
         """Returns a list of all children in the order added.
         If tag is not None, then the list is filtered by tag."""
 
         return [x for x in self._children if tag is None or getattr(x, 'tag', None) == tag]
 
-    @staticmethod
-    def _escape_child(child):
-        """Escapes some reserved HTML characters if child is a str.
-
-        :param child: a str, or _Element, for convenience.
-        :returns: str, or _Element.
-        """
-
-        return child if isinstance(child, _Element) else escape(str(child), quote=False)
-
-    def append(self, child):
+    def append(self, child: "_Element"):
         """Appends child element."""
 
         if child is None:
             return
 
-        self._children.append(self._escape_child(child))
+        self._children.append(child)
 
-    def insert(self, offset, child):
+    def insert(self, offset: int, child: "_Element"):
         """Inserts child element at offset."""
 
         if child is None:
             return
 
-        self._children.insert(offset, self._escape_child(child))
+        self._children.insert(offset, child)
 
-    def remove(self, child):
+    def remove(self, child: "_Element"):
         """Removes child element from children, if present."""
 
         self._children = [x for x in self._children if x != child]
 
-    def find_by_id(self, value):
+    def find_by_id(self, value: Any) -> Optional["_Element"]:
         """Finds the element in the tree having attribute id="value", if present.
         Some so-called "full stack developers" think it's okay to have multiple elements
         with the same id value. This method does not support that."""
@@ -109,7 +95,7 @@ class _Element():
             return self
         else:
             for child in self._children:
-                element = child.find_by_id(value) if hasattr(child, 'find_by_id') else None
+                element = child.find_by_id(value)
                 if element:
                     break
             else:
@@ -121,7 +107,7 @@ class _EmptyElement(_Element):
 
     is_empty = True
 
-    def __init__(self, **attributes): # pylint: disable=useless-super-delegation
+    def __init__(self, **attributes: Any): # pylint: disable=useless-super-delegation
         super(_EmptyElement, self).__init__(**attributes)
 
     def __str__(self):
@@ -130,15 +116,11 @@ class _EmptyElement(_Element):
 class Raw(_Element):
     """Pseudo-element representing raw data."""
 
-    def __init__(self, data):
-        """Wraps a string that should not be escaped; e.g. javaascript code, or an HTML
-        element already rendered as a string.
+    def __init__(self, data: str, *, escape_data: bool=False):
+        """Set escape_data to True to escape some some reserved HTML characters in data."""
 
-        :data: a str object.
-        """
-
-        super(Raw, self).__init__()
-        self.data = str(data)
+        super().__init__()
+        self.data = escape(str(data), quote=False) if escape_data else str(data)
 
     def __str__(self):
         return self.data
@@ -439,11 +421,13 @@ class Html(_Element):
 
     tag = 'html'
 
-    def __init__(self, head, body, *, encoding='utf-8', **attributes):
+    def __init__(self, head: Head, body: Body, *, encoding: str='utf-8', **attributes: Any):
         if head is None:
             raise ValueError('head element must not be None.')
+        self.head = head
         if body is None:
-            raise ValueError('head element must not be None.')
+            raise ValueError('body element must not be None.')
+        self.body = body
 
         super(Html, self).__init__(head, body, **attributes)
         self.encoding = encoding
@@ -460,30 +444,18 @@ class Html(_Element):
     def encoding(self):
         """Gets/sets encoding property."""
         charset_meta = self._charset_meta()
+        # encoding setter should have been invoked in __init__, and thus a META element with
+        # charset attribute should exist.
+        assert charset_meta
         return charset_meta.attributes['charset']
 
     @encoding.setter
-    def encoding(self, value):
+    def encoding(self, value: str):
         charset_meta = self._charset_meta()
         if charset_meta:
             charset_meta.attributes['charset'] = value
         else:
             self.head.insert(0, Meta(charset=value))
-
-    def _child(self, tag):
-        """Private helper used to retrieve head | body element."""
-        child_list = self.children(tag=tag)
-        return child_list[0] if child_list else None
-
-    @property
-    def body(self):
-        "Returns the body child element, if present, or None."""
-        return self._child('body')
-
-    @property
-    def head(self):
-        "Returns the head child element, if present, or None."""
-        return self._child('head')
 
     def __bytes__(self):
         return self.__str__().encode(self.encoding)
@@ -829,7 +801,3 @@ class Wbr(_EmptyElement):
     """Represents an HTML wbr element."""
 
     tag = 'wbr'
-
-
-for subcls in chain(filterfalse(lambda x: x == _EmptyElement, _Element.__subclasses__()), _EmptyElement.__subclasses__()): #pylint: disable=line-too-long
-    __all__.append(subcls.__name__)
