@@ -1,4 +1,4 @@
-# requirements file for virtual environments.
+# requirements file for development.
 
 -e .
 black
