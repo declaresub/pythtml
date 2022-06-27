@@ -1,17 +1,17 @@
-# pyfive
+#pythtml
 
-pyfive is an alternative to templates for generation of HTML 5. 
+pythtml is an alternative to templates for generation of HTML 5. 
 
 
 ## Python Requirements
 
-pyfive does not support Python 2.  It has been tested with Python 3.4-3.6.
+pythtml does not support Python 2.  It is tested with Python 3.7+
 
-## Using pyfive
+## Using pythtml
 
-To use pyfive, import all from the package.
+To use pythtml, import all from the package.
 
-    from pyfive import *
+    from pythtml import *
 
 This adds functions corresponding to HTML 5 elements to the module namespace, plus a special class, 
 `Raw`.
@@ -21,8 +21,9 @@ The signature for most HTML element classes is the same.
     class P(_Element):
         def __init__(self, *children, **attributes)
     
-A children argument can be either another pyfive element, or text. Text 
-values are escaped using cgi.escape. Attribute parameters are demangled as follows:
+A children argument is another pythtml element. 
+
+Attribute parameters are demangled as follows:
 keyword_ -> keyword
 data\_foo_bar -> data-foo-bar
 
@@ -44,57 +45,41 @@ want to use this to include a script, or other raw HTML.  There are examples bel
 
 Empty elements (e.g. img) omit the *children parameter in \_\_init__.
 
-    
+## Raw HTMl
+
+The Raw pseudo-element allows for the insertion of string data into an HTML document.  Typically one would
+use this to add script elements.  The Raw initializer has a keyword parameter escape_data with default value False.  Pass True
+to escape some reserved HTML characters in data.
+
 ## Text Encoding
 
-The default encoding for HTML 5 is UTF-8.  The magic method `Html.__bytes__` returns UTF-8 encoded
-data. If you want data with a different encoding, use `str(doc).encode('your-encoding')`.
+The default encoding for HTML 5 is UTF-8, but you can supply a different encoding in HTML.__init__. The dunder method `Html.__bytes__` returns data
+encoded in the specified encoding.
+
 A meta element specifying the charset is inserted for you as the first child element of
 the head element.
 
 ## Development
 
-Use the venv script included in the repository to create virtual environments.
 
-### Create a virtual environment
-
-    ./venv create dev
-    
-Specify a python version:
-
-    ./venv create --pyversion 3.4 dev3.4
-    
-The command creates a new virtual environment and installs everything in requirements.txt.
-Virtual environments are created in /path/to/repository/.venv .
-
-Remove a virtual environment:
-
-    ./venv remove dev3.4
-    
-Activate a virtual environment:
-
-    ./venv shell dev3.6
-    
-You can omit the name if there is only one virtual environment.  This command creates a new
-bash shell.  Other shells could be supported if anyone else ever works on pyfive.
 
 ## Examples
 
 ### Get the package version:
 
-    >>> import pyfive
-    >>> print(pyfive.__version__)
+    >>> import pythtml
+    >>> print(pythtml.__version__)
     0.0.0
     
 ### Generation of a document:
 
-    >>> from pyfive import *
+    >>> from pythtml import *
     >>> 
     >>> doc = Html(
-    ...     Head(Title('pyfive')),
+    ...     Head(Title('pythtml')),
     ...     Body(
-    ...         H1('pyfive', id="title"), 
-    ...         P('pyfive is an alternative to templates for generation of HTML.', class_='blurb'), 
+    ...         H1('pythtml', id="title"), 
+    ...         P('pythtml is an alternative to templates for generation of HTML.', class_='blurb'), 
     ...         Script(type='text/javascript', src='http://www.the.gov/tracking_code.js')
     ...         )
     ...     )
@@ -105,22 +90,22 @@ bash shell.  Other shells could be supported if anyone else ever works on pyfive
 ### Generation of a header element:
 
     >>> doc_header = header(
-    ...     H1('pyfive', id="title"), 
-    ...     P('pyfive is an alternative to templates for generation of HTML.')
+    ...     H1('pythtml', id="title"), 
+    ...     P('pythtml is an alternative to templates for generation of HTML.')
     ...     )
     >>> print(doc_header)
-    <header><h1 id="title">pyfive</h1><p>pyfive is an alternative to templates for generation of HTML.</p></header>
+    <header><h1 id="title">pythtml</h1><p>pythtml is an alternative to templates for generation of HTML.</p></header>
     
 ### Inline Formatting
 
-    >>> from pyfive import *
+    >>> from pythtml import *
     >>> 
     >>> print (P('This text contains a ', B('bold'), ' tag.'))
     <p>This text contains a <b>bold</b> tag.</p>
     
 ### Add script code without escaping:
 
-    >>> from pyfive import *
+    >>> from pythtml import *
     >>> 
     >>> chumhum_analytics = """
     ...     (function(i,s,o,g,r,a,m){i['ChumhumAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -144,7 +129,7 @@ bash shell.  Other shells could be supported if anyone else ever works on pyfive
 
 ### Iteration
 
-    >>> from pyfive import *
+    >>> from pythtml import *
     >>> 
     >>> option_items = ['Red', 'Green', 'Blue']
     >>> print(Ul(*(Li(item) for item in option_items)))
@@ -152,7 +137,7 @@ bash shell.  Other shells could be supported if anyone else ever works on pyfive
 
 ### Template
 
-    >>> from pyfive import *
+    >>> from pythtml import *
 
     >>> context = {'username': 'poindexter'}
     >>> template = str(P('You are logged in as {username}.', class_='welcome'))
