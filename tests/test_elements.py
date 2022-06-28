@@ -61,16 +61,6 @@ def test_append(input, expected):
     div.append(input)
     assert div.children() == [input if expected is None else expected]
 
-def test_append_none():
-    div = Div()
-    div.append(None)
-    assert div.children() == []
-
-def test_insert_none():
-    div = Div()
-    div.insert(0, None)
-    assert div.children() == []
-
 def test_children_tag():
     children = [P(), Div()]
     div = Div(*children)
@@ -110,9 +100,6 @@ def test_html_body():
     body = Body()
     html = Html(head, body)
     assert html.body == body
-
-def test_null_child():
-    assert str(Div(None)) == '<div></div>'
 
 def test_demangle_kw():
     assert str(Div(class_='foo')) == '<div class="foo"></div>'
