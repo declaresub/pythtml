@@ -2,6 +2,7 @@
 
 pythtml is an alternative to templates for generation of HTML 5. 
 
+![tox](https://github.com/ccwrangler/ccwrangler-api/actions/workflows/tox.yml/badge.svg)
 
 ## Python Requirements
 
@@ -58,9 +59,6 @@ encoded in the specified encoding.
 
 A meta element specifying the charset is inserted for you as the first child element of
 the head element.
-
-## Development
-
 
 
 ## Examples
@@ -145,3 +143,14 @@ the head element.
     <p class="welcome">You are logged in as poindexter.</p>
 
 
+## Development
+
+### Unit Tests
+
+From the root of the repository, run unit tests:
+
+    pytest --cov=src --cov-report term-missing tests
+
+Run tox to test all supported Python versions:
+
+    tox
